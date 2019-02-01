@@ -245,7 +245,7 @@ if dialog.getDialogResult == true
 		error_count = 0
 		last_progress = Time.now
 		last_status_update = Time.now
-		tag_grouped = Hash.new{|h,k| h[k] = [] }
+		tag_grouped = Hash.new{|h,k| h[k] = {} }
 
 		pd.setMainProgress(0,items.size)
 
@@ -253,7 +253,7 @@ if dialog.getDialogResult == true
 		scanner.whenProgressUpdated do |value|
 			elapsed_seconds = (Time.now - start_time).to_i
 			elapsed = $su.getFormatUtility.secondsToElapsedString(elapsed_seconds)
-			message = "#{elapsed} #{value}/#{items.size}, Matched Items: #{matched_item_count}, Matches: #{matched_value_count}, Errors: #{error_count}"
+			message = "#{elapsed} Scanned #{value}/#{items.size}, Matched Items: #{matched_item_count}, Matches: #{matched_value_count}, Errors: #{error_count}"
 
 			# Update the main status 16x a second (save some cycles by throttling it a bit)
 			# if (Time.now - last_status_update) > 2
@@ -264,7 +264,7 @@ if dialog.getDialogResult == true
 
 			# Record status every 5 seconds to log area
 			if (Time.now - last_progress) > 5
-				pd.logMessage("Scanned #{message}")
+				pd.logMessage(message)
 				last_progress = Time.now
 			end
 		end
@@ -418,7 +418,7 @@ if dialog.getDialogResult == true
 			matched_item_count += 1
 			item = item_match_collection.getItem
 			# Create hash inside hash where inner hash has empty array as initial value
-			# Used to group by hash[location][title] = [item1,item2,etc]
+			# Used to group by hash[location][title] = [value1,value2,etc]
 			location_title_grouped = Hash.new{|h,k| h[k] = Hash.new{|h2,k2| h2[k2] = [] } }
 
 			# Record data for the matches against an item
@@ -437,7 +437,7 @@ if dialog.getDialogResult == true
 				if apply_tags
 					tag = $su.getFormatUtility.resolvePlaceholders(tag_template,placeholders)
 					semaphore.synchronize {
-						tag_grouped[tag] << item
+						tag_grouped[tag][item] = true
 					}
 				end
 
@@ -559,7 +559,7 @@ if dialog.getDialogResult == true
 			annotater = $utilities.getBulkAnnotater
 			tag_grouped.each do |tag,items|
 				pd.setSubStatusAndLogIt("Applying tag '#{tag}' to #{items.size} items")
-				annotater.addTag(tag, items)
+				annotater.addTag(tag, items.keys)
 			end
 		end
 
