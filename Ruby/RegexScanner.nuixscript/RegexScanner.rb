@@ -60,6 +60,7 @@ end
 
 # CSV reports include a timestemp so we need to capture one
 filename_timestamp = $su.getFormatUtility.getFilenameTimestamp
+short_date = org.joda.time.DateTime.now.toString("YYYYMMdd")
 
 property_choices = $current_case.getMetadataItems.map{|mi|mi.getName}.uniq.sort.map{|name| Choice.new(name,name,"Metadata property: #{name}",true)}
 
@@ -97,7 +98,7 @@ reporting_tab.enabledOnlyWhenChecked("report_xlsx_file","generate_report_xlsx")
 reporting_tab.appendCheckBox("include_item_path","Include Item Path",false)
 reporting_tab.appendCheckBox("include_physical_path","Include Physical Ancestors's Path",false)
 
-reporting_tab.appendCheckableTextField("generate_word_lists",false,"word_list_name_template","#{filename_timestamp} {title} Words","Generate Word Lists")
+reporting_tab.appendCheckableTextField("generate_word_lists",false,"word_list_name_template","#{short_date} {title} Words","Generate Word Lists")
 reporting_tab.appendHeader("Note: existing word lists with the same names in this case will be overwritten!")
 
 # Define settings validation performed by the settings dialog
