@@ -24,7 +24,7 @@ Begin by downloading the latest release of this code.  Extract the contents of t
 
 **Tip:** Settings can be saved/loaded through the file menu.
 
-### Scan Settings Tab
+### General Scan Settings Tab
 
 | Setting | Description |
 |---------|-------------|
@@ -32,9 +32,26 @@ Begin by downloading the latest release of this code.  Extract the contents of t
 | **Expressions are Case Sensitive** | When checked, matches are made in a case sensitive manner (capitalization must match that in a given expression). |
 | **Capture Match Value Context** | When checked, reports will contain contextual text for each match (some of the text surround the match). |
 | **Context Size in Characters** | Determines how many characters before and after a match are included in match context information when **Capture Match Value Context** is checked. |
+
+### Content Text Scan Settings
+
+| Setting | Description |
+|---------|-------------|
 | **Scan Item Content** | When checked, the content text of items will be checked for matches to the provided expressions. |
+
+### Property Scan Settings Tab
+
+| Setting | Description |
+|---------|-------------|
 | **Scan Item Properties** | When checked, metadata property values of items will be checked for matches to the provided expressions.  Metadata property values are converted to strings before matching using the corresponding metadata profile fields. |
 | **Properties to Scan** | When **Scan Item Properties** is checked, this table determines which metadata properties will be scanned.  Uncheck properties if you do not wish to get matches from particular metadata properties. |
+
+### Custom Metadata Scan Settings Tab
+
+| Setting | Description |
+|---------|-------------|
+| **Scan Item Custom Metadata** | When checked, custom metadata values of items will be checked for matches to the provided expressions.  Custom metadata values are converted to strings before matching. |
+| **Fields to Scan** | When **Scan Item Custom Metadata** is checked, this table determines which custom metadata fields will be scanned.  Uncheck fields if you do not wish to get matches from particular custom metadata fields. |
 
 ### Reporting Tab
 

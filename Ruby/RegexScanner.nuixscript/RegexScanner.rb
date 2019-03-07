@@ -62,7 +62,12 @@ end
 filename_timestamp = $su.getFormatUtility.getFilenameTimestamp
 short_date = org.joda.time.DateTime.now.toString("YYYYMMdd")
 
-property_choices = $current_case.getMetadataItems.map{|mi|mi.getName}.uniq.sort.map{|name| Choice.new(name,name,"Metadata property: #{name}",true)}
+case_metadata_items = $current_case.getMetadataItems
+property_metadata_items = case_metadata_items.select{|mi| mi.getType == "PROPERTY"}
+cm_metadata_items = case_metadata_items.select{|mi| mi.getType == "CUSTOM"}
+
+property_choices = property_metadata_items.map{|mi|mi.getName}.uniq.sort.map{|name| Choice.new(name,name,"Metadata property: #{name}",true)}
+cm_choices = cm_metadata_items.map{|mi|mi.getName}.uniq.sort.map{|name| Choice.new(name,name,"Custom metadata property: #{name}",true)}
 
 # Setup the settings dialog
 dialog = TabbedCustomDialog.new("Regex Scanner 2")
@@ -72,17 +77,27 @@ expressions_tab = dialog.addTab("expressions_tab","Regular Expressions")
 expressions_tab.appendHeader("Items: #{items.size}")
 expressions_tab.appendCsvTable("regex_expressions",["Title","Regex"])
 
-scan_settings_tab = dialog.addTab("scan_settings_tab","Scan Settings")
-scan_settings_tab.appendCheckBox("skip_excluded_items","Skip Excluded Items",true)
-scan_settings_tab.appendCheckBox("case_sensitive","Expressions are Case Sensitive",false)
-scan_settings_tab.appendCheckBox("capture_context","Capture Match Value Context",false)
-scan_settings_tab.appendSpinner("context_size_chars","Context Size in Characters",100,1,1000,5)
-scan_settings_tab.enabledOnlyWhenChecked("context_size_chars","capture_context")
-scan_settings_tab.appendCheckBox("scan_content","Scan Item Content",true)
-scan_settings_tab.appendCheckBox("scan_properties","Scan Item Properties",true)
-scan_settings_tab.appendHeader("Properties to Scan")
-scan_settings_tab.appendChoiceTable("properties_to_scan","Properties to Scan",property_choices)
-scan_settings_tab.enabledOnlyWhenChecked("properties_to_scan","scan_properties")
+general_scan_settings_tab = dialog.addTab("general_scan_settings_tab","General Scan Settings")
+general_scan_settings_tab.appendCheckBox("skip_excluded_items","Skip Excluded Items",true)
+general_scan_settings_tab.appendCheckBox("case_sensitive","Expressions are Case Sensitive",false)
+general_scan_settings_tab.appendCheckBox("capture_context","Capture Match Value Context",false)
+general_scan_settings_tab.appendSpinner("context_size_chars","Context Size in Characters",100,1,1000,5)
+general_scan_settings_tab.enabledOnlyWhenChecked("context_size_chars","capture_context")
+
+content_scan_tab = dialog.addTab("content_scan_tab","Content Text Scan Settings")
+content_scan_tab.appendCheckBox("scan_content","Scan Item Content",true)
+
+property_scan_tab = dialog.addTab("property_scan_tab","Property Scan Settings")
+property_scan_tab.appendCheckBox("scan_properties","Scan Item Properties",true)
+property_scan_tab.appendHeader("Properties to Scan")
+property_scan_tab.appendChoiceTable("properties_to_scan","Properties to Scan",property_choices)
+property_scan_tab.enabledOnlyWhenChecked("properties_to_scan","scan_properties")
+
+cm_scan_tab = dialog.addTab("cm_scan_tab","Custom Metadata Scan Settings")
+cm_scan_tab.appendCheckBox("scan_cm","Scan Item Custom Metadata",false)
+cm_scan_tab.appendHeader("Custom Metadata Fields to Scan")
+cm_scan_tab.appendChoiceTable("cm_to_scan","Fields to Scan",cm_choices)
+cm_scan_tab.enabledOnlyWhenChecked("cm_to_scan","scan_cm")
 
 reporting_tab = dialog.addTab("reporting_tab","Reporting")
 reporting_tab.appendCheckableTextField("apply_tags",false,"tag_template","RegexScannerMatch|{location}|{title}","Apply Tags")
@@ -180,6 +195,10 @@ if dialog.getDialogResult == true
 
 	scan_properties = values["scan_properties"]
 	properties_to_scan = values["properties_to_scan"]
+
+	scan_cm = values["scan_cm"]
+	cm_to_scan = values["cm_to_scan"]
+
 	scan_content = values["scan_content"]
 	case_sensitive = values["case_sensitive"]
 	capture_context = values["capture_context"]
@@ -241,6 +260,8 @@ if dialog.getDialogResult == true
 		scanner = $su.createRegexScanner
 		scanner.setScanProperties(scan_properties)
 		scanner.setPropertiesToScan(properties_to_scan)
+		scanner.setScanCustomMetadata(scan_cm)
+		scanner.setCustomMetadataToScan(cm_to_scan)
 		scanner.setScanContent(scan_content)
 		scanner.setCaseSensitive(case_sensitive)
 		scanner.setCaptureContextualText(capture_context)
