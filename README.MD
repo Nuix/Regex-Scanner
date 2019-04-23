@@ -1,7 +1,7 @@
 Regex Scanner
 =============
 
-![This script was last tested in Nuix 7.8](https://img.shields.io/badge/Script%20Tested%20in%20Nuix-7.8-green.svg)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0) ![This script was last tested in Nuix 7.8](https://img.shields.io/badge/Script%20Tested%20in%20Nuix-7.8-green.svg)
 
 View the GitHub project [here](https://github.com/Nuix/Regex-Scanner) or download the latest release [here](https://github.com/Nuix/Regex-Scanner/releases).
 
@@ -23,6 +23,43 @@ Begin by downloading the latest release of this code.  Extract the contents of t
 ## Settings
 
 **Tip:** Settings can be saved/loaded through the file menu.
+
+### Regular Expressions Tab
+
+On this tab you can provide 1 or more regular expressions to scan for.  Each provided regular expression is also expected to have a title value provided for it.  The title value is used to refer to a given regular expression:
+- When applying tags to matches
+- When applying custom metadata about matches
+- When reporting a match in one of the report files
+
+For details on the regular expression "flavor" supported by this script, consult the help menu on the settings dialog or refer to the documentation for the Java [Pattern](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html) class.
+
+### Named Entities
+
+This tab allows you to specify named entities to scan for.  **Important Note:** Checking named entities on this tab does NOT generate the specified named entities.  If the items being scanned have not had named entities already generated for them, checking the named entities on this tab will do nothing.  Instead checking the named entities on this tab will, at runtime, add expressions to match the given named entity match values generated for a given item.
+
+To demonstrate this with an example, imagine you have processed an item and it has some named entity matches:
+
+- `person`
+	- `John`
+	- `Bob`
+- `email`
+	- `john@company.com`
+	- `bob@company.com`
+
+At runtime, additional regular expressions will be generated and scanned for based on these named entity match values:
+- `\QJohn\E`
+- `\QBob\E`
+- `\Qjohn@company.com\E`
+- `\Qbob@company.com\E`
+
+**Note:** `\Q` and `\E` tell the Java class [Pattern](https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html) to make a literal match to the text between `\Q` and `\E`.
+
+You might wonder, why would you want to do this when the named entity has already captured these values?  While named entities report a matched value, they don't necessarily report:
+- Was the match value in content text or metadata properties?  If it was in metadata properties, which ones?
+- What position in the source text was a given named entity match value found?
+- What is the contextual text around a given named entity match value?
+
+These are additional details that can be determined using this script.
 
 ### General Scan Settings Tab
 
