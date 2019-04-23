@@ -77,6 +77,12 @@ expressions_tab = dialog.addTab("expressions_tab","Regular Expressions")
 expressions_tab.appendHeader("Items: #{items.size}")
 expressions_tab.appendCsvTable("regex_expressions",["Title","Regex"])
 
+named_entity_choices = $current_case.getAllEntityTypes.map{|net| Choice.new(net,net,"Match named entity #{net}",true)}
+named_entities_tab = dialog.addTab("named_entities_tab","Named Entities")
+named_entities_tab.appendCheckBox("match_named_entity_values","Scan for Named Entity Values",false)
+named_entities_tab.appendChoiceTable("named_entities_to_match","",named_entity_choices)
+named_entities_tab.enabledOnlyWhenChecked("named_entities_to_match","match_named_entity_values")
+
 general_scan_settings_tab = dialog.addTab("general_scan_settings_tab","General Scan Settings")
 general_scan_settings_tab.appendCheckBox("skip_excluded_items","Skip Excluded Items",true)
 general_scan_settings_tab.appendCheckBox("case_sensitive","Expressions are Case Sensitive",false)
@@ -118,9 +124,17 @@ reporting_tab.appendHeader("Note: existing word lists with the same names in thi
 
 # Define settings validation performed by the settings dialog
 dialog.validateBeforeClosing do |values|
-	# Make sure at least one Regex was provided
-	if values["regex_expressions"].size < 1
+
+	if values["regex_expressions"].size < 1 && values["match_named_entity_values"] && values["named_entities_to_match"].size < 1
+		CommonDialogs.showWarning("Please provide at least 1 regular expression or check 1 named entity type.")
+		next false
+	elsif values["regex_expressions"].size < 1 && values["match_named_entity_values"] == false
 		CommonDialogs.showWarning("Please provide at least one regular expression.")
+		next false
+	end
+
+	if values["match_named_entity_values"] && values["named_entities_to_match"].size < 1
+		CommonDialogs.showWarning("Please select at least 1 named entity type.")
 		next false
 	end
 
@@ -226,6 +240,9 @@ if dialog.getDialogResult == true
 
 	word_list_grouped_matches = Hash.new{|h,k| h[k] = {} }
 
+	match_named_entity_values = values["match_named_entity_values"]
+	named_entities_to_match = values["named_entities_to_match"]
+
 	# Close all tabs if we can and need to
 	if NuixConnection.getCurrentNuixVersion.isAtLeast("6.2") && apply_custom_metadata
 		$window.closeAllTabs
@@ -266,6 +283,8 @@ if dialog.getDialogResult == true
 		scanner.setCaseSensitive(case_sensitive)
 		scanner.setCaptureContextualText(capture_context)
 		scanner.setContextSize(context_size_chars)
+		scanner.setMatchNamedEntityValues(match_named_entity_values)
+		scanner.setNamedEntityTypes(named_entities_to_match)
 		start_time = Time.now
 
 		regex_expressions.each do |record|
@@ -341,16 +360,32 @@ if dialog.getDialogResult == true
 			errors_csv_file = File.join(report_csv_directory,"#{filename_timestamp}_RegexScanErrors.csv").gsub("/","\\")
 
 			CSV.open(summary_csv_file,"w:utf-8") do |summary_csv|
-				summary_csv << [
-					"Title",
-					"Regular Exporession",
-				]
-
-				scanner.getPatterns.each do |pattern_info|
+				if regex_expressions.size > 0
 					summary_csv << [
-						pattern_info.getTitle,
-						pattern_info.getExpression,
+						"Title",
+						"Regular Expression",
 					]
+					scanner.getPatterns.each do |pattern_info|
+						summary_csv << [
+							pattern_info.getTitle,
+							pattern_info.getExpression,
+						]
+					end
+				end
+
+				if regex_expressions.size > 0 && match_named_entity_values
+					summary_csv << []
+				end
+
+				if match_named_entity_values
+					summary_csv << [
+						"Named Entity",
+					]
+					scanner.getNamedEntityTypes.each do |named_entity_type|
+						summary_csv << [
+							named_entity_type,
+						]
+					end
 				end
 			end
 
@@ -367,15 +402,33 @@ if dialog.getDialogResult == true
 			xlsx_report = Xlsx.new
 
 			summary_sheet = xlsx_report.get_sheet("Summary")
-			summary_sheet << [
-				"Title",
-				"Regular Exporession",
-			]
-			scanner.getPatterns.each do |pattern_info|
+
+			if regex_expressions.size > 0
 				summary_sheet << [
-					pattern_info.getTitle,
-					pattern_info.getExpression,
+					"Title",
+					"Regular Expression",
 				]
+				scanner.getPatterns.each do |pattern_info|
+					summary_sheet << [
+						pattern_info.getTitle,
+						pattern_info.getExpression,
+					]
+				end
+			end
+
+			if regex_expressions.size > 0 && match_named_entity_values
+				summary_sheet << []
+			end
+
+			if match_named_entity_values
+				summary_sheet << [
+					"Named Entity",
+				]
+				scanner.getNamedEntityTypes.each do |named_entity_type|
+					summary_sheet << [
+						named_entity_type,
+					]
+				end
 			end
 
 			matches_sheet = xlsx_report.get_sheet("Matches")
