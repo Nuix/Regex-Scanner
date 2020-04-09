@@ -254,9 +254,9 @@ if dialog.getDialogResult == true
 
 		# When a message is logged to the progress dialog we would like
 		# it written to standard output and logs
-		pd.onMessageLogged do |message|
-			puts message
-		end
+		# pd.onMessageLogged do |message|
+		# 	puts message
+		# end
 
 		pd.logMessage("Scanning in Parallel: #{$scan_in_parallel}")
 		if $scan_in_parallel
@@ -267,7 +267,8 @@ if dialog.getDialogResult == true
 			pd.logMessage("Removing any excluded items present in input items...")
 			item_count_before = items.size
 			pd.logMessage("Items Before: #{item_count_before}")
-			items = items.reject{|item| item.isExcluded}
+			case_excluded_items = $current_case.searchUnsorted("has-exclusion:1")
+			items = $utilities.getItemUtility.difference(items,case_excluded_items)
 			item_count_after = items.size
 			pd.logMessage("Items After: #{item_count_after}")
 			pd.logMessage("Excluded Items Removed: #{item_count_before - item_count_after}")
@@ -450,7 +451,7 @@ if dialog.getDialogResult == true
 			title = ""
 			expression = ""
 			location = ""
-			guid = scan_error.getItem.getGuid
+			guid = scan_error.getItem($current_case).getGuid
 			message = scan_error.getException.getMessage
 
 			# Depending on where error occurred pattern info may not be available
@@ -503,7 +504,7 @@ if dialog.getDialogResult == true
 
 			pd.setSubStatus("")
 			matched_item_count += 1
-			item = item_match_collection.getItem
+			item = item_match_collection.getItem($current_case)
 			# Create hash inside hash where inner hash has empty array as initial value
 			# Used to group by hash[location][title] = [value1,value2,etc]
 			location_title_grouped = Hash.new{|h,k| h[k] = Hash.new{|h2,k2| h2[k2] = [] } }
