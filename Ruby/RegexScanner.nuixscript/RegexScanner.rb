@@ -86,6 +86,8 @@ named_entities_tab.enabledOnlyWhenChecked("named_entities_to_match","match_named
 general_scan_settings_tab = dialog.addTab("general_scan_settings_tab","General Scan Settings")
 general_scan_settings_tab.appendCheckBox("skip_excluded_items","Skip Excluded Items",true)
 general_scan_settings_tab.appendCheckBox("case_sensitive","Expressions are Case Sensitive",false)
+general_scan_settings_tab.appendCheckBox("multiline","Multiline Mode",false)
+general_scan_settings_tab.appendCheckBox("dotall","Dot All Mode",false)
 general_scan_settings_tab.appendCheckBox("capture_context","Capture Match Value Context",false)
 general_scan_settings_tab.appendSpinner("context_size_chars","Context Size in Characters",100,1,1000,5)
 general_scan_settings_tab.enabledOnlyWhenChecked("context_size_chars","capture_context")
@@ -215,6 +217,8 @@ if dialog.getDialogResult == true
 
 	scan_content = values["scan_content"]
 	case_sensitive = values["case_sensitive"]
+	multiline = values["multiline"]
+	dotall = values["dotall"]
 	capture_context = values["capture_context"]
 	context_size_chars = values["context_size_chars"]
 
@@ -282,6 +286,8 @@ if dialog.getDialogResult == true
 		scanner.setCustomMetadataToScan(cm_to_scan)
 		scanner.setScanContent(scan_content)
 		scanner.setCaseSensitive(case_sensitive)
+		scanner.setMultiline(multiline)
+		scanner.setDotall(dotall)
 		scanner.setCaptureContextualText(capture_context)
 		scanner.setContextSize(context_size_chars)
 		scanner.setMatchNamedEntityValues(match_named_entity_values)
